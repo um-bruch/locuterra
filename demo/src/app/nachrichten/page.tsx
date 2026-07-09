@@ -8,6 +8,7 @@ export default function NachrichtenPage() {
   const [activeConv, setActiveConv] = useState(conversations[0]?.id || "");
   const msgs = getMessagesForConversation(activeConv);
   const conv = conversations.find((c) => c.id === activeConv);
+  const conversationPanelId = "conversation-panel";
 
   return (
     <div>
@@ -18,16 +19,27 @@ export default function NachrichtenPage() {
 
       <div className="grid md:grid-cols-[280px_1fr] gap-4">
         {/* Conversation list */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div
+          className="bg-white border border-gray-200 rounded-xl overflow-hidden"
+          role="list"
+          aria-label="Konversationen"
+        >
           {conversations.map((c) => {
             const other = c.participantIds.find((id) => id !== "demo-user");
             const account = other ? getAccount(other) : null;
+            const isActive = c.id === activeConv;
+            const conversationLabel = `${account?.displayName || "Unbekannt"}: ${c.subject}`;
             return (
               <button
                 key={c.id}
                 onClick={() => setActiveConv(c.id)}
+                type="button"
+                aria-controls={conversationPanelId}
+                aria-pressed={isActive}
+                aria-label={conversationLabel}
+                title={conversationLabel}
                 className={`w-full text-left p-3 border-b border-gray-50 transition-colors ${
-                  c.id === activeConv
+                  isActive
                     ? "bg-emerald-50"
                     : "hover:bg-gray-50"
                 }`}
@@ -49,7 +61,12 @@ export default function NachrichtenPage() {
         </div>
 
         {/* Messages */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <div
+          id={conversationPanelId}
+          className="bg-white border border-gray-200 rounded-xl p-4"
+          role="region"
+          aria-label={conv ? `Nachrichten zu ${conv.subject}` : "Nachrichten"}
+        >
           {conv && (
             <div className="border-b border-gray-100 pb-2 mb-4">
               <p className="font-medium text-gray-900 text-sm">{conv.subject}</p>
@@ -93,10 +110,14 @@ export default function NachrichtenPage() {
               type="text"
               placeholder="Nachricht schreiben... (Demo)"
               disabled
+              aria-label="Nachricht schreiben (Demo deaktiviert)"
               className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400"
             />
             <button
               disabled
+              type="button"
+              aria-label="Nachricht senden (im Demo-Modus deaktiviert)"
+              title="Nachricht senden (Demo deaktiviert)"
               className="bg-emerald-200 text-emerald-600 px-4 py-2 rounded-lg text-sm cursor-not-allowed"
             >
               Senden
