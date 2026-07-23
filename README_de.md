@@ -67,6 +67,7 @@ trägt). Beide gehören zusammen, sind aber bewusst getrennt dokumentiert.
 | [RESSOURCEN_UND_MARKTPLATZ.md](./RESSOURCEN_UND_MARKTPLATZ.md) | Trennung Ressourcen vs. Marktplatz |
 | [RESSOURCEN_FLOW.md](./RESSOURCEN_FLOW.md) | Ablauf für Ressourcenangebote |
 | [INFORMATIONSKANAL_FLOW.md](./INFORMATIONSKANAL_FLOW.md) | Abo, Begleitchat und Kontaktfreigabe |
+| [BACKOFFICE_EINSPRUCHS_FLOW.md](./BACKOFFICE_EINSPRUCHS_FLOW.md) | Ablauf für Einspruchsstelle und Backoffice-Moderation |
 | [GLOSSARY.md](./GLOSSARY.md) | Projektbegriffe |
 | [Feature_Analyse_LOCUTERRA.md](./Feature_Analyse_LOCUTERRA.md) | Umfassende Feature-Analyse |
 

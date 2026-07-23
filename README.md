@@ -67,6 +67,7 @@ Both belong together but are deliberately documented separately.
 | [RESSOURCEN_UND_MARKTPLATZ.md](./RESSOURCEN_UND_MARKTPLATZ.md) | Separation of resources vs. marketplace |
 | [RESSOURCEN_FLOW.md](./RESSOURCEN_FLOW.md) | Resource offering workflow |
 | [INFORMATIONSKANAL_FLOW.md](./INFORMATIONSKANAL_FLOW.md) | Subscription, companion chat, and contact sharing |
+| [BACKOFFICE_EINSPRUCHS_FLOW.md](./BACKOFFICE_EINSPRUCHS_FLOW.md) | Appeals office and backoffice moderation workflow |
 | [GLOSSARY.md](./GLOSSARY.md) | Project terminology |
 | [Feature_Analyse_LOCUTERRA.md](./Feature_Analyse_LOCUTERRA.md) | Comprehensive feature analysis |
 
