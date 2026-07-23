@@ -6,6 +6,11 @@ Alle nennenswerten Änderungen an LOCUTERRA werden hier dokumentiert.
 
 ### Hinzugefügt
 
+- `BACKOFFICE_EINSPRUCHS_FLOW.md`, `docs/PWA_LIGHTHOUSE_AUDIT_2026-07-05.md`,
+  Next.js-App-Router-Icons (`icon.png`/`apple-icon.png`) und ein
+  vervollständigtes Public-Favicon-Set nachzertifiziert und committet
+  (waren seit Wochen unkommittet im Arbeitsbaum; FABLE-SOL Software-Loop
+  Punkt 34, 2026-07-23).
 - Demo-Screenshot `demo/public/demo-preview.png` als README-Vorschau,
   Web-App-Manifest-Screenshot und Social-Sharing-Bild.
 - `llms.txt` für LLM-Crawler-Indexierung (Audience, Search Phrases, Last-checked).
