@@ -18,6 +18,10 @@ Alle nennenswerten Änderungen an LOCUTERRA werden hier dokumentiert.
 
 ### Geändert
 
+- `WORKFLOWS.md` verlinkt nur noch getrackte öffentliche Unterlagen und
+  kennzeichnet `START.md`, `STATE.md` und `TODO.md` ausdrücklich als lokale,
+  interne Referenzen statt als tote öffentliche Links. Ein begrenzter
+  repository-relativer Linkcheck des Routers ist vollständig grün.
 - Next.js-Metadaten um Canonical-URL, Keywords, OpenGraph- und Twitter-Preview
   für bessere Auffindbarkeit der GitHub-Pages-Demo erweitert.
 - `llms.txt` auf `Last-checked: 2026-06-12` aktualisiert und um die Demo-Vorschau
