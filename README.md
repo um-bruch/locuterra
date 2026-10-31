@@ -47,6 +47,10 @@ Then open `http://localhost:3000` in your browser.
 The demonstrator is a statically exportable prototype with no backend.
 All data is fictional and lives in the client.
 
+### Installable Android Pilot App (`android/`)
+
+An installable, offline-capable Android pilot app (`org.umbruch.locuterra.pilot`, `minSdk 26`, `targetSdk 36`) is located in [`android/`](./android). It packages the static Grüntal demonstrator into local APK assets (`LocuterraAssetResolver`), provides an ephemeral in-memory state store (`PilotSessionStore`) for interactive pilot flows (separated channel subscription / companion chat / contact consent, group join policies, non-commercial resource inquiries, and moderation/appeal notes), and requests **zero** `android.permission.INTERNET` permissions. See [`android/README.md`](./android/README.md) for build, test, and sideload instructions.
+
 ## Concept documents
 
 LOCUTERRA consists of two concepts: the **platform concept** (how the

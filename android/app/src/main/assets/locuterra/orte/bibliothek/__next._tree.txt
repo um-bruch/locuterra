@@ -1,0 +1,2 @@
+:HL["/locuterra/_next/static/chunks/00aq2a64gduc2.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"orte","param":null,"prefetchHints":0,"slots":{"children":{"name":"id","param":{"type":"d","key":"bibliothek","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"NrMU5ISZEb9TAcYdV4YEU"}

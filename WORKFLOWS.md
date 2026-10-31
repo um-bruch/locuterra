@@ -13,6 +13,7 @@ oder in das öffentliche Repository übernommen.
 | Du willst... | Öffne |
 |---|---|
 | Den öffentlichen Demonstrator lokal starten | [demo/README.md](./demo/README.md) |
+| Die installierbare Android-Pilot-App bauen & testen | [android/README.md](./android/README.md) |
 | Den internen Projektstart ausführen | Lokale/interne Referenz: `START.md` (nicht Teil des öffentlichen Repositorys) |
 | Den internen Arbeitsstand verstehen | Lokale/interne Referenz: `STATE.md` (nicht Teil des öffentlichen Repositorys) |
 | Interne aktive Aufgaben bearbeiten | Lokale/interne Referenz: `TODO.md` (nicht Teil des öffentlichen Repositorys) |
