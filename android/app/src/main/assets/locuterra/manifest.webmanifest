@@ -1,0 +1,57 @@
+{
+  "name": "LOCUTERRA",
+  "short_name": "LOCUTERRA",
+  "description": "Gemeinwohlorientiertes, ortsbasiertes Social Network — Konzept-Demonstrator",
+  "id": "/locuterra/",
+  "start_url": "/locuterra/",
+  "scope": "/locuterra/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "browser"
+  ],
+  "orientation": "any",
+  "theme_color": "#065f46",
+  "background_color": "#ffffff",
+  "lang": "de",
+  "categories": [
+    "social",
+    "productivity"
+  ],
+  "screenshots": [
+    {
+      "src": "/locuterra/demo-preview.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "LOCUTERRA demo home screen"
+    }
+  ],
+  "icons": [
+    {
+      "src": "./icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/Icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/Icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
