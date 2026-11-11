@@ -189,7 +189,9 @@ class MainActivity : AppCompatActivity() {
             domStorageEnabled = true
             allowFileAccess = false
             allowContentAccess = false
-            blockNetworkLoads = false
+            // blockNetworkLoads stays at its default: without the INTERNET permission it is
+            // already true, and setting it to false would throw a SecurityException.
+            // Local assets are still served through shouldInterceptRequest below.
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
             cacheMode = WebSettings.LOAD_NO_CACHE
         }
@@ -248,6 +250,10 @@ class MainActivity : AppCompatActivity() {
                 val urlStr = uri.toString()
                 if (LocuterraAssetResolver.isAllowedLocalUrl(urlStr)) {
                     return false
+                }
+                if (!PilotDomScript.isOpenableExternalUrl(urlStr)) {
+                    // intent:, file:, content:, javascript: and similar never leave the pilot.
+                    return true
                 }
                 // External informational links (GitHub / Um:bruch) open only after explicit user confirmation
                 AlertDialog.Builder(this@MainActivity)
@@ -374,23 +380,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun appendMessageToWebViewDom(sender: String, body: String) {
-        val safeSender = sender.replace("'", "\\'").replace("\n", " ")
-        val safeBody = body.replace("'", "\\'").replace("<", "&lt;").replace(">", "&gt;").replace("\n", " ")
-        val js = """
-            (function() {
-              var panel = document.querySelector('#conversation-panel .space-y-3');
-              if (!panel) return;
-              var wrap = document.createElement('div');
-              wrap.className = 'flex justify-end';
-              wrap.innerHTML = '<div class="max-w-[80%] rounded-xl px-3 py-2 bg-emerald-100 text-emerald-900 border border-emerald-300">' +
-                '<p class="text-xs font-medium mb-0.5">🧑 ' + '$safeSender' + ' · <span class="underline">Lokal (Pilot)</span></p>' +
-                '<p class="text-sm">' + '$safeBody' + '</p>' +
-                '<p class="text-[10px] text-emerald-700 mt-1">Ephemerer Client-State · wird beim Reset gelöscht</p>' +
-                '</div>';
-              panel.appendChild(wrap);
-            })();
-        """.trimIndent()
-        webView.evaluateJavascript(js, null)
+        webView.evaluateJavascript(PilotDomScript.appendMessageScript(sender, body), null)
     }
 
     private fun showPilotActionsDialog() {
