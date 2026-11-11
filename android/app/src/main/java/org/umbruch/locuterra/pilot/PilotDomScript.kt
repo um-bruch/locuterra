@@ -22,7 +22,7 @@ object PilotDomScript {
                 ch == '\t' -> out.append("\\t")
                 // Escaped as well so the literal can never close a quote, a tag or a line.
                 ch < ' ' || ch == '\'' || ch == '<' || ch == '>' || ch == '&' ||
-                    ch == ' ' || ch == ' ' ->
+                    ch == '\u2028' || ch == '\u2029' ->
                     out.append("\\u").append(ch.code.toString(16).padStart(4, '0'))
                 else -> out.append(ch)
             }
