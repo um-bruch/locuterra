@@ -131,4 +131,54 @@ class PilotUnitTest {
         assertEquals(0, store.getResourceInquiries().size)
         assertEquals(0, store.getEphemeralMessages().size)
     }
+
+    @Test
+    fun jsStringLiteralEscapesQuotesBackslashesAndMarkup() {
+        assertEquals("\"abc\"", PilotDomScript.quoteJsString("abc"))
+        assertEquals("\"a\\\\b\"", PilotDomScript.quoteJsString("a\\b"))
+        assertEquals("\"a\\\"b\"", PilotDomScript.quoteJsString("a\"b"))
+        assertEquals("\"\\u0027\\u003c\\u003e\\u0026\"", PilotDomScript.quoteJsString("'<>&"))
+        assertEquals("\"a\\nb\\rc\\u2028d\"", PilotDomScript.quoteJsString("a\nb\rc\u2028d"))
+    }
+
+    @Test
+    fun appendMessageScriptKeepsHostileTextInsideStringLiterals() {
+        val hostile = "\\'); window.LocuterraAndroidPilot.sendLocalMessage('x'); ('<img src=x onerror=alert(1)>"
+        val script = PilotDomScript.appendMessageScript("Alex \\' Rivera", hostile)
+
+        assertFalse(script.contains("innerHTML"))
+        assertFalse(script.contains("<img"))
+        assertFalse(script.contains("\\');"))
+        assertTrue(script.contains("text.textContent = " + PilotDomScript.quoteJsString(hostile)))
+    }
+
+    @Test
+    fun onlyHttpsLinksMayLeaveThePilot() {
+        assertTrue(PilotDomScript.isOpenableExternalUrl("https://github.com/um-bruch/locuterra"))
+        assertFalse(PilotDomScript.isOpenableExternalUrl("http://example.org/"))
+        assertFalse(PilotDomScript.isOpenableExternalUrl("intent://scan/#Intent;scheme=zxing;end"))
+        assertFalse(PilotDomScript.isOpenableExternalUrl("file:///sdcard/x.html"))
+        assertFalse(PilotDomScript.isOpenableExternalUrl("javascript:alert(1)"))
+    }
+
+    @Test
+    fun statusSubtitleReflectsSeedAndUpdatedCounts() {
+        val store = PilotSessionStore()
+        assertEquals(
+            "Konto: Alex Rivera (Pseudonym) · Kanäle: 1 · Anfragen: 0 · Nachrichten: 0 · Meldungen: 0",
+            store.formatStatusSubtitle()
+        )
+        store.submitResourceInquiry(
+            resourceId = "bohrmaschine",
+            resourceTitle = "Bohrmaschine",
+            recipientDisplayName = "Maria",
+            message = "Testanfrage",
+            nonCommercialConfirmed = true
+        )
+        store.submitModerationOrAppeal("ort:marktplatz", "Testgrund")
+        assertEquals(
+            "Konto: Alex Rivera (Pseudonym) · Kanäle: 1 · Anfragen: 1 · Nachrichten: 1 · Meldungen: 1",
+            store.formatStatusSubtitle()
+        )
+    }
 }

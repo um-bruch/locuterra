@@ -10,7 +10,13 @@ Alle nennenswerten Änderungen an LOCUTERRA werden hier dokumentiert.
   ephemerem `PilotSessionStore` (getrennter Kanal-Consent, Gruppen-Policies,
   nicht-kommerzielle Ressourcenanfrage, Moderations-/Einspruchsnotizen),
   explizitem Pilot-Header ohne Echtbetrieb-Versprechen, 0 Netzwerk-Permissions
-  und 7 JUnit-Tests (`PilotUnitTest`).
+  und 10 JUnit-Tests (`PilotUnitTest`).
+- Android-Pilot gehärtet: `blockNetworkLoads` bleibt beim Standardwert (ohne
+  `INTERNET`-Permission löste das Abschalten eine `SecurityException` beim Start
+  aus), lokale Pilot-Nachrichten gelangen nur noch als escapte String-Literale
+  über `textContent` in das WebView (`PilotDomScript`), externe Links verlassen
+  den Piloten ausschließlich als `https`, und die Sync-Konfliktkopie
+  `manifest-Mac Studio.webmanifest` ist aus den Assets entfernt.
 
 ### Hinzugefügt
 
