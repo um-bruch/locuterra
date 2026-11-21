@@ -306,6 +306,15 @@ class PilotSessionStore {
     fun getModerationCases(): List<ModerationCase> = moderationCases.toList()
 
     @Synchronized
+    fun formatStatusSubtitle(): String {
+        val subs = channels.values.count { it.subscribed }
+        val inqs = resourceInquiries.size
+        val msgs = messages.size
+        val mods = moderationCases.size
+        return "Konto: Alex Rivera (Pseudonym) · Kanäle: $subs · Anfragen: $inqs · Nachrichten: $msgs · Meldungen: $mods"
+    }
+
+    @Synchronized
     fun buildPilotSummaryText(): String {
         val activeSubs = channels.values.count { it.subscribed }
         val activeConsents = channels.values.count { it.contactSharingConsented }

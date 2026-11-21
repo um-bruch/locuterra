@@ -160,4 +160,25 @@ class PilotUnitTest {
         assertFalse(PilotDomScript.isOpenableExternalUrl("file:///sdcard/x.html"))
         assertFalse(PilotDomScript.isOpenableExternalUrl("javascript:alert(1)"))
     }
+
+    @Test
+    fun statusSubtitleReflectsSeedAndUpdatedCounts() {
+        val store = PilotSessionStore()
+        assertEquals(
+            "Konto: Alex Rivera (Pseudonym) · Kanäle: 1 · Anfragen: 0 · Nachrichten: 0 · Meldungen: 0",
+            store.formatStatusSubtitle()
+        )
+        store.submitResourceInquiry(
+            resourceId = "bohrmaschine",
+            resourceTitle = "Bohrmaschine",
+            recipientDisplayName = "Maria",
+            message = "Testanfrage",
+            nonCommercialConfirmed = true
+        )
+        store.submitModerationOrAppeal("ort:marktplatz", "Testgrund")
+        assertEquals(
+            "Konto: Alex Rivera (Pseudonym) · Kanäle: 1 · Anfragen: 1 · Nachrichten: 1 · Meldungen: 1",
+            store.formatStatusSubtitle()
+        )
+    }
 }
