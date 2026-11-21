@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an LOCUTERRA werden hier dokumentiert.
 
 ## [Unreleased]
 
+- Installierbare Android-Pilot-App unter `android/` (`org.umbruch.locuterra.pilot`,
+  `minSdk 26`, `targetSdk 36`, Kotlin/Gradle) auf Basis des bestehenden
+  Grüntal-Demonstrators (`demo/out`) mit lokalem `LocuterraAssetResolver`,
+  ephemerem `PilotSessionStore` (getrennter Kanal-Consent, Gruppen-Policies,
+  nicht-kommerzielle Ressourcenanfrage, Moderations-/Einspruchsnotizen),
+  explizitem Pilot-Header ohne Echtbetrieb-Versprechen, 0 Netzwerk-Permissions
+  und 10 JUnit-Tests (`PilotUnitTest`).
+- Android-Pilot gehärtet: `blockNetworkLoads` bleibt beim Standardwert (ohne
+  `INTERNET`-Permission löste das Abschalten eine `SecurityException` beim Start
+  aus), lokale Pilot-Nachrichten gelangen nur noch als escapte String-Literale
+  über `textContent` in das WebView (`PilotDomScript`), externe Links verlassen
+  den Piloten ausschließlich als `https`, und die Sync-Konfliktkopie
+  `manifest-Mac Studio.webmanifest` ist aus den Assets entfernt.
+
 ### Hinzugefügt
 
 - `BACKOFFICE_EINSPRUCHS_FLOW.md`, `docs/PWA_LIGHTHOUSE_AUDIT_2026-07-05.md`,

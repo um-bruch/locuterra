@@ -47,6 +47,10 @@ Dann im Browser: `http://localhost:3000`
 Der Demonstrator ist ein statisch exportierbarer Prototyp ohne Backend.
 Alle Daten sind fiktiv und leben im Client.
 
+### Installierbare Android-Pilot-App (`android/`)
+
+Eine installierbare, vollständig offlinefähige Android-Pilot-App (`org.umbruch.locuterra.pilot`, `minSdk 26`, `targetSdk 36`) liegt unter [`android/`](./android). Sie bündelt den statischen Grüntal-Demonstrator in lokalen APK-Assets (`LocuterraAssetResolver`), stellt einen ephemeren In-Memory-Speicher (`PilotSessionStore`) für interaktive Pilot-Flows bereit (getrennte Schalter für Kanal-Abo / Begleitchat / Kontaktfreigabe, Gruppen-Beitrittsregeln, nicht-kommerzielle Ressourcenanfragen sowie Moderations-/Einspruchsnotizen) und fordert bewusst **keine** `android.permission.INTERNET`-Berechtigung an. Details zu Build, Tests und Sideload stehen in [`android/README.md`](./android/README.md).
+
 ## Konzeptdokumente
 
 LOCUTERRA besteht aus zwei Konzepten: dem **Plattformkonzept** (wie das
