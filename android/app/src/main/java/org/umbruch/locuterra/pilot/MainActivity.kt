@@ -138,8 +138,8 @@ class MainActivity : AppCompatActivity() {
             statusCounterView = TextView(context).apply {
                 setTextColor(Color.parseColor("#D1FAE5"))
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                updateStatusSubtitle()
             }
+            updateStatusSubtitle()
             addView(statusCounterView)
         }
     }
@@ -174,12 +174,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateStatusSubtitle() {
-        val subs = pilotStore.getAllChannelStates().count { it.subscribed }
-        val inqs = pilotStore.getResourceInquiries().size
-        val msgs = pilotStore.getEphemeralMessages().size
-        val mods = pilotStore.getModerationCases().size
-        statusCounterView.text =
-            "Konto: Alex Rivera (Pseudonym) · Kanäle: $subs · Anfragen: $inqs · Nachrichten: $msgs · Meldungen: $mods"
+        statusCounterView.text = pilotStore.formatStatusSubtitle()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
