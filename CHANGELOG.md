@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen an LOCUTERRA werden hier dokumentiert.
 
 ## [Unreleased]
 
+- **Redesign nach `/software-in-worten` (`v0.2.0-pilot`, `versionCode 3`):**
+  - Neuer UI-Blueprint unter `docs/UI-BLUEPRINT-SOFTWARE-IN-WORTEN.md` mit warmer Civic-Editorial-Farbpalette (`#F4F6F1`, `#0F5132`, `#E2F2E8`).
+  - Native Android-Shell (`MainActivity.kt`) komplett überarbeitet: eine ruhige weiße Top App Bar, eine 5-Tab-Material-3-Bottom-Navigation mit Salbei-Aktiv-Pille und Vektor-Icons (`ic_nav_*.xml`), echte Edge-to-Edge-`WindowInsetsCompat.Type.systemBars()`, automatische Routen-zu-Tab-Synchronisierung und laienverständliche Dialoge.
+  - Web-Doppelnavigation & Doppel-Header per `html.android-pilot`-Regel innerhalb der Android-App sauber ausgeblendet (`59/59` Demo-Tests grün, Android-15-Emulator-Smoke-Test mit 0 Crashes).
+- Web-/PWA-Demonstrator (`demo/`): UX-/Accessibility-Verbesserungen und Vertragstests umgesetzt:
+  - Kanäle-Übersicht (`src/app/kanaele/page.tsx`) verlinkt jeden Informationskanal direkt auf die Detailseite `/kanaele/[id]`.
+  - Skip-Link (`#main-content`) und sichtbare `:focus-visible`-Fokusstile in `layout.tsx` und `globals.css` ergänzt; `<nav aria-label="Hauptnavigation">`, `aria-current="page"` und `aria-hidden="true"` auf dekorativen Emojis verankert.
+  - Überschriftenhierarchie über `Card` (`headingLevel = "h2"`, Detail-Unterlisten `"h3"`) bereinigt und kontrastschwaches `text-gray-400`/`text-gray-500` bei lesbaren Metadaten auf `text-gray-600`/`text-gray-700` angehoben.
+  - Neue Vertragstest-Suite `demo/tests/ux_and_contracts.test.mjs` (12 Tests: Verlinkung, Landmarks, Fokus, Kontrast, Android-Bridge-Kompatibilität, Grüntal-Referenzintegrität und Nicht-Kommerzialitäts-Invariante; insgesamt 59/59 Demo-Tests grün) sowie synchronisierte Web-Assets für `android/`.
 - Installierbare Android-Pilot-App unter `android/` (`org.umbruch.locuterra.pilot`,
   `minSdk 26`, `targetSdk 36`, Kotlin/Gradle) auf Basis des bestehenden
   Grüntal-Demonstrators (`demo/out`) mit lokalem `LocuterraAssetResolver`,
