@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8faf9;
-  --foreground: #1a2e1a;
+  --background: #f4f6f1;
+  --surface: #ffffff;
+  --surface-muted: #edf2eb;
+  --foreground: #16221c;
+  --brand: #0f5132;
+  --brand-soft: #e2f2e8;
+  --border-subtle: #e2e7df;
 }
 
 @theme inline {
@@ -10,7 +15,30 @@
   --color-foreground: var(--foreground);
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+:focus-visible {
+  outline: 2px solid #0f5132;
+  outline-offset: 2px;
+}
+
+/* Native Android Pilot Shell provides one unified Top-Bar & 5-Tab Bottom-Bar:
+   hide duplicate web chrome cleanly without affecting the standalone Web/PWA mode. */
+html.android-pilot .locuterra-demo-banner,
+html.android-pilot nav[aria-label="Hauptnavigation"],
+html.android-pilot .locuterra-footer {
+  display: none !important;
+}
+
+html.android-pilot main#main-content {
+  padding-top: 1rem;
+  padding-bottom: 1.75rem;
 }

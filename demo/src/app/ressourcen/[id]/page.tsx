@@ -37,75 +37,88 @@ export default async function RessourcenDetailPage({
   const place = getPlace(resource.placeId);
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-5">
       <Link
         href="/ressourcen"
-        className="text-sm text-emerald-700 hover:text-emerald-900 mb-4 inline-block"
+        className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-800 hover:text-emerald-950"
       >
         &larr; Alle Ressourcen
       </Link>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-        <div className="flex items-start gap-3 mb-3">
-          <span className="text-3xl mt-1">
+      <div className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_rgba(22,34,28,0.04)]">
+        <div className="flex items-start gap-3.5">
+          <span
+            className="w-12 h-12 rounded-2xl bg-[#edf3ee] flex items-center justify-center text-2xl shrink-0"
+            aria-hidden="true"
+          >
             {kindIcons[resource.resourceKind] || "\u{1F91D}"}
           </span>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#16221c] tracking-tight">
                 {resource.title}
               </h1>
               <ReachBadge level={resource.visibilityScope} />
             </div>
-            <p className="text-sm text-gray-400 mt-0.5">
-              {kindLabels[resource.resourceKind] || resource.resourceKind}
+            <p className="text-xs font-medium text-gray-600 mt-1">
+              {kindLabels[resource.resourceKind] || resource.resourceKind} · Kostenlose Nachbarschaftshilfe
             </p>
           </div>
         </div>
-        <p className="text-gray-600">{resource.description}</p>
+        <p className="text-sm text-gray-600 mt-4 leading-relaxed">
+          {resource.description}
+        </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 gap-3">
         {owner && (
-          <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h2 className="font-semibold text-gray-900 mb-2 text-sm">
+          <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(22,34,28,0.04)]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 mb-2.5">
               Anbieter
             </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{owner.avatarEmoji}</span>
+            <div className="flex items-center gap-3">
+              <span
+                className="w-10 h-10 rounded-full bg-[#e2f2e8] flex items-center justify-center text-xl shrink-0"
+                aria-hidden="true"
+              >
+                {owner.avatarEmoji}
+              </span>
               <div>
-                <p className="font-medium text-gray-900">
+                <p className="font-semibold text-[#16221c] text-sm">
                   {owner.displayName}
                 </p>
-                <p className="text-xs text-gray-500">{owner.bio}</p>
+                <p className="text-xs text-gray-600">{owner.bio}</p>
               </div>
             </div>
           </div>
         )}
         {place && (
-          <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h2 className="font-semibold text-gray-900 mb-2 text-sm">Ort</h2>
+          <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(22,34,28,0.04)]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 mb-2.5">
+              Ort
+            </h2>
             <Link
               href={`/orte/${place.id}`}
-              className="flex items-center gap-2 text-emerald-700 hover:text-emerald-900"
+              className="flex items-center gap-2 font-semibold text-sm text-emerald-800 hover:underline"
             >
-              <span>{"\u{1F4CD}"}</span>
+              <span aria-hidden="true">{"\u{1F4CD}"}</span>
               <span>{place.name}</span>
             </Link>
-            <p className="text-xs text-gray-500 mt-1">{place.description}</p>
+            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+              {place.description}
+            </p>
           </div>
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-2">Kontakt aufnehmen</h2>
-        <p className="text-sm text-gray-600 mb-3">
-          In einer echten Version würdest du hier eine Direktnachricht an den
-          Anbieter senden können.
+      <div className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_rgba(22,34,28,0.04)]">
+        <h2 className="font-semibold text-[#16221c] mb-1.5">Kontakt aufnehmen</h2>
+        <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+          Schreibe eine direkte, nicht-kommerzielle Anfrage an {owner?.displayName || "den Anbieter"}.
         </p>
         <button
           disabled
-          className="bg-emerald-200 text-emerald-600 px-4 py-2 rounded-lg text-sm cursor-not-allowed"
+          className="w-full sm:w-auto bg-emerald-200 text-emerald-600 px-5 py-3 rounded-xl text-sm font-semibold cursor-not-allowed"
         >
           Nachricht schreiben (Demo)
         </button>

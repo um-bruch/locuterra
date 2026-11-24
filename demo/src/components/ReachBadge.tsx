@@ -4,7 +4,7 @@ const reachLabels: Record<ReachLevel, string> = {
   privat: "Privat",
   gruppe: "Gruppe",
   ort: "Ort",
-  dorf: "Dorf/Ortsteil",
+  dorf: "Ortsteil",
   kommune: "Kommune",
   region: "Region",
   land: "Land",
@@ -13,21 +13,21 @@ const reachLabels: Record<ReachLevel, string> = {
 };
 
 const reachColors: Record<ReachLevel, string> = {
-  privat: "bg-gray-100 text-gray-700",
-  gruppe: "bg-blue-100 text-blue-700",
-  ort: "bg-teal-100 text-teal-700",
-  dorf: "bg-emerald-100 text-emerald-700",
-  kommune: "bg-green-100 text-green-800",
-  region: "bg-amber-100 text-amber-700",
-  land: "bg-orange-100 text-orange-700",
-  national: "bg-red-100 text-red-700",
-  transnational: "bg-purple-100 text-purple-700",
+  privat: "bg-stone-100 text-stone-700 border-stone-200",
+  gruppe: "bg-sky-50 text-sky-800 border-sky-200/80",
+  ort: "bg-teal-50 text-teal-800 border-teal-200/80",
+  dorf: "bg-emerald-50 text-emerald-800 border-emerald-200/80",
+  kommune: "bg-emerald-100/80 text-emerald-900 border-emerald-300/70",
+  region: "bg-amber-50 text-amber-800 border-amber-200/80",
+  land: "bg-orange-50 text-orange-800 border-orange-200/80",
+  national: "bg-rose-50 text-rose-800 border-rose-200/80",
+  transnational: "bg-violet-50 text-violet-800 border-violet-200/80",
 };
 
 export default function ReachBadge({ level }: { level: ReachLevel }) {
   return (
     <span
-      className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${reachColors[level]}`}
+      className={`inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${reachColors[level]}`}
     >
       {reachLabels[level]}
     </span>

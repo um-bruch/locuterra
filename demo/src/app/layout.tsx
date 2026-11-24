@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#065f46",
+  themeColor: "#0f5132",
 };
 
 export default function RootLayout({
@@ -58,19 +58,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#f4f6f1] text-[#16221c]">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-emerald-900 focus:text-white focus:px-4 focus:py-2 focus:rounded-xl focus:text-sm focus:font-medium focus:shadow-lg"
+        >
+          Zum Hauptinhalt springen
+        </a>
         <SwRegister />
         <DemoBanner />
         <Navigation />
-        <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 max-w-4xl mx-auto w-full px-4 py-5 sm:py-7 focus:outline-none"
+        >
           {children}
         </main>
-        <footer className="border-t border-gray-200 py-4 text-center text-xs text-gray-500">
+        <footer className="locuterra-footer border-t border-stone-200/90 bg-white/70 py-4 text-center text-xs text-gray-600">
           LOCUTERRA Konzept-Demonstrator &mdash; Fiktive Daten, keine echten
           Personen &mdash;{" "}
           <a
             href="https://um-bruch.org"
-            className="underline hover:text-emerald-700"
+            className="underline hover:text-emerald-800"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -18,8 +18,8 @@ android {
         applicationId = "org.umbruch.locuterra.pilot"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.1.1-pilot"
+        versionCode = 3
+        versionName = "0.2.0-pilot"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

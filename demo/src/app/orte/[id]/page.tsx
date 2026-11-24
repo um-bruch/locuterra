@@ -24,26 +24,28 @@ export default async function OrteDetailPage({
   const placeResources = resources.filter((r) => r.placeId === id);
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-5">
       <Link
         href="/orte"
-        className="text-sm text-emerald-700 hover:text-emerald-900 mb-4 inline-block"
+        className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-800 hover:text-emerald-950"
       >
         &larr; Alle Orte
       </Link>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">{place.name}</h1>
+      <div className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_rgba(22,34,28,0.04)]">
+        <div className="flex items-center gap-2.5 flex-wrap mb-2">
+          <h1 className="text-2xl font-bold text-[#16221c] tracking-tight">
+            {place.name}
+          </h1>
           <ReachBadge level={place.visibilityScope} />
         </div>
-        <p className="text-gray-600">{place.description}</p>
+        <p className="text-sm text-gray-600 leading-relaxed">{place.description}</p>
         {parent && (
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-gray-600 mt-3 pt-3 border-t border-stone-100">
             Gehört zu:{" "}
             <Link
               href={`/orte/${parent.id}`}
-              className="text-emerald-700 hover:underline"
+              className="font-semibold text-emerald-800 hover:underline"
             >
               {parent.name}
             </Link>
@@ -52,28 +54,29 @@ export default async function OrteDetailPage({
       </div>
 
       {children.length > 0 && (
-        <div className="mb-6">
-          <h2 className="font-semibold text-gray-800 mb-3">Unterorte</h2>
-          <div className="grid gap-2">
+        <section>
+          <h2 className="font-semibold text-[#16221c] mb-3">Unterorte</h2>
+          <div className="grid gap-3">
             {children.map((c) => (
               <Card
                 key={c.id}
                 href={`/orte/${c.id}`}
                 emoji={"\u{1F4CD}"}
                 title={c.name}
+                headingLevel="h3"
                 badge={<ReachBadge level={c.visibilityScope} />}
               >
                 {c.description}
               </Card>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {placeGroups.length > 0 && (
-        <div className="mb-6">
-          <h2 className="font-semibold text-gray-800 mb-3">Gruppen an diesem Ort</h2>
-          <div className="grid gap-2">
+        <section>
+          <h2 className="font-semibold text-[#16221c] mb-3">Gruppen an diesem Ort</h2>
+          <div className="grid gap-3">
             {placeGroups.map((g) => (
               <Card
                 key={g.id}
@@ -81,32 +84,34 @@ export default async function OrteDetailPage({
                 emoji={"\u{1F465}"}
                 title={g.name}
                 subtitle={`${g.memberCount} Mitglieder`}
+                headingLevel="h3"
                 badge={<ReachBadge level={g.visibilityScope} />}
               >
                 {g.description}
               </Card>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {placeResources.length > 0 && (
-        <div>
-          <h2 className="font-semibold text-gray-800 mb-3">Ressourcen an diesem Ort</h2>
-          <div className="grid gap-2">
+        <section>
+          <h2 className="font-semibold text-[#16221c] mb-3">Ressourcen an diesem Ort</h2>
+          <div className="grid gap-3">
             {placeResources.map((r) => (
               <Card
                 key={r.id}
                 href={`/ressourcen/${r.id}`}
                 emoji={"\u{1F91D}"}
                 title={r.title}
+                headingLevel="h3"
                 badge={<ReachBadge level={r.visibilityScope} />}
               >
                 {r.description}
               </Card>
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   );

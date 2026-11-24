@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">LOCUTERRA Pilot</string>
-    <string name="pilot_banner_title">PILOT-MODUS · Synthetische Kommune Grüntal (Offline, kein Echtbetrieb)</string>
-    <string name="pilot_actions_button">Pilot-Ablauf</string>
-    <string name="pilot_info_button">Info &amp; Grenzen</string>
+    <string name="app_name">LOCUTERRA</string>
+    <string name="pilot_chip_label">Grüntal · Pilot</string>
+    <string name="cd_channels">Kanäle öffnen</string>
+    <string name="cd_messages">Nachrichten öffnen</string>
+    <string name="cd_pilot_menu">Pilot-Menü öffnen</string>
 </resources>
