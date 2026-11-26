@@ -4,6 +4,10 @@ Alle nennenswerten Änderungen an LOCUTERRA werden hier dokumentiert.
 
 ## [Unreleased]
 
+- **Android-Asset-Packaging-Fix (`v0.2.1-pilot`, `versionCode 4`, `T-20261124-206377961`):**
+  - `android/app/build.gradle.kts` überschreibt nun `androidResources.ignoreAssetsPattern` ohne `<dir>_*`, sodass Next.js-Assets unter `assets/locuterra/_next/` (CSS- und JS-Chunks inkl. Civic-Editorial-Stylesheet) vollständig in die APK gepackt werden.
+  - Automatische Gradle-Verifikationstasks (`verifyDebugApkWebAssets` / `verifyReleaseApkWebAssets`) prüfen nach jedem APK-Build direkt an der erzeugten ZIP/APK-Datei, dass alle von `index.html` referenzierten `/locuterra/_next/`-CSS- und JS-Chunks real enthalten sind.
+  - Zusätzliche JUnit-Tests in `PilotUnitTest` prüfen CSS-MIME-Resolution, Vollständigkeit aller `_next`-Referenzen aus `index.html` sowie die Gradle-Konfiguration gegen `<dir>_*`-Regressionen.
 - **Redesign nach `/software-in-worten` (`v0.2.0-pilot`, `versionCode 3`):**
   - Neuer UI-Blueprint unter `docs/UI-BLUEPRINT-SOFTWARE-IN-WORTEN.md` mit warmer Civic-Editorial-Farbpalette (`#F4F6F1`, `#0F5132`, `#E2F2E8`).
   - Native Android-Shell (`MainActivity.kt`) komplett überarbeitet: eine ruhige weiße Top App Bar, eine 5-Tab-Material-3-Bottom-Navigation mit Salbei-Aktiv-Pille und Vektor-Icons (`ic_nav_*.xml`), echte Edge-to-Edge-`WindowInsetsCompat.Type.systemBars()`, automatische Routen-zu-Tab-Synchronisierung und laienverständliche Dialoge.
