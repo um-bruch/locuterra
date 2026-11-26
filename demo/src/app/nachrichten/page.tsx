@@ -11,16 +11,23 @@ export default function NachrichtenPage() {
   const conversationPanelId = "conversation-panel";
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Nachrichten</h1>
-      <p className="text-gray-500 mb-6">
-        Direktnachrichten mit anderen Bürgerinnen und Bürgern.
-      </p>
+    <div className="space-y-5">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">
+          Direktaustausch
+        </p>
+        <h1 className="text-2xl font-bold text-[#16221c] tracking-tight">
+          Nachrichten
+        </h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Direktnachrichten mit Menschen aus deiner Nachbarschaft.
+        </p>
+      </header>
 
-      <div className="grid md:grid-cols-[280px_1fr] gap-4">
+      <div className="grid md:grid-cols-[270px_1fr] gap-4">
         {/* Conversation list */}
         <div
-          className="bg-white border border-gray-200 rounded-xl overflow-hidden"
+          className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(22,34,28,0.04)]"
           role="list"
           aria-label="Konversationen"
         >
@@ -38,21 +45,26 @@ export default function NachrichtenPage() {
                 aria-pressed={isActive}
                 aria-label={conversationLabel}
                 title={conversationLabel}
-                className={`w-full text-left p-3 border-b border-gray-50 transition-colors ${
+                className={`w-full text-left p-3.5 border-b border-stone-100 last:border-b-0 transition-colors ${
                   isActive
-                    ? "bg-emerald-50"
-                    : "hover:bg-gray-50"
+                    ? "bg-[#e8f3ec]"
+                    : "hover:bg-stone-50"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-10 h-10 rounded-full bg-[#edf3ee] flex items-center justify-center text-lg shrink-0"
+                    aria-hidden="true"
+                  >
                     {account?.avatarEmoji || "\u{1F464}"}
                   </span>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#16221c] truncate">
                       {account?.displayName || "Unbekannt"}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{c.subject}</p>
+                    <p className="text-xs text-gray-600 truncate mt-0.5">
+                      {c.subject}
+                    </p>
                   </div>
                 </div>
               </button>
@@ -63,16 +75,16 @@ export default function NachrichtenPage() {
         {/* Messages */}
         <div
           id={conversationPanelId}
-          className="bg-white border border-gray-200 rounded-xl p-4"
+          className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(22,34,28,0.04)] flex flex-col"
           role="region"
           aria-label={conv ? `Nachrichten zu ${conv.subject}` : "Nachrichten"}
         >
           {conv && (
-            <div className="border-b border-gray-100 pb-2 mb-4">
-              <p className="font-medium text-gray-900 text-sm">{conv.subject}</p>
+            <div className="border-b border-stone-100 pb-3 mb-4">
+              <p className="font-semibold text-[#16221c] text-sm">{conv.subject}</p>
             </div>
           )}
-          <div className="space-y-3">
+          <div className="space-y-3 flex-1">
             {msgs.map((msg) => {
               const sender = getAccount(msg.senderAccountId);
               const isMe = msg.senderAccountId === "demo-user";
@@ -82,17 +94,18 @@ export default function NachrichtenPage() {
                   className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-xl px-3 py-2 ${
+                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${
                       isMe
-                        ? "bg-emerald-100 text-emerald-900"
-                        : "bg-gray-100 text-gray-900"
+                        ? "bg-[#e2f2e8] text-emerald-950 rounded-br-sm"
+                        : "bg-stone-100 text-[#16221c] rounded-bl-sm"
                     }`}
                   >
-                    <p className="text-xs font-medium mb-0.5">
-                      {sender?.avatarEmoji} {sender?.displayName}
+                    <p className="text-xs font-semibold mb-0.5">
+                      <span aria-hidden="true">{sender?.avatarEmoji}</span>{" "}
+                      {sender?.displayName}
                     </p>
-                    <p className="text-sm">{msg.body}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">
+                    <p className="text-sm leading-relaxed">{msg.body}</p>
+                    <p className="text-[11px] text-gray-600 mt-1">
                       {new Date(msg.sentAt).toLocaleString("de-DE", {
                         day: "2-digit",
                         month: "2-digit",
@@ -105,20 +118,20 @@ export default function NachrichtenPage() {
               );
             })}
           </div>
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 pt-3 border-t border-stone-100 flex gap-2">
             <input
               type="text"
               placeholder="Nachricht schreiben... (Demo)"
               disabled
               aria-label="Nachricht schreiben (Demo deaktiviert)"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400"
+              className="flex-1 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-gray-50 text-gray-400"
             />
             <button
               disabled
               type="button"
               aria-label="Nachricht senden (im Demo-Modus deaktiviert)"
               title="Nachricht senden (Demo deaktiviert)"
-              className="bg-emerald-200 text-emerald-600 px-4 py-2 rounded-lg text-sm cursor-not-allowed"
+              className="bg-emerald-200 text-emerald-600 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-not-allowed"
             >
               Senden
             </button>

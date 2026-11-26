@@ -1,4 +1,7 @@
 const CACHE_NAME = 'locuterra-v1';
+// Inhalts-Hash aller ASSETS-Dateien inkl. Manifest und Icons (demo/tests/sw_asset_hash.test.mjs prueft ihn):
+// aendert sich eine davon, CACHE_NAME erhoehen, sonst behalten installierte PWAs den alten Code.
+const ASSET_HASH = '0a52fac2f14f'; // eslint-disable-line no-unused-vars
 const BASE = '/locuterra';
 
 // Nur garantiert vorhandene Shell-Assets — Routen werden lazy gecacht (fetch handler).

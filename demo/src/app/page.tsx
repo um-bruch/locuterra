@@ -5,104 +5,150 @@ import { resources } from "@/data/resources";
 import { channels } from "@/data/channels";
 
 const stats = [
-  { label: "Orte", count: places.length, href: "/orte", icon: "\u{1F4CD}" },
-  { label: "Gruppen", count: groups.length, href: "/gruppen", icon: "\u{1F465}" },
-  { label: "Ressourcen", count: resources.length, href: "/ressourcen", icon: "\u{1F91D}" },
-  { label: "Kanäle", count: channels.length, href: "/kanaele", icon: "\u{1F4E2}" },
+  { label: "Orte", count: places.length, href: "/orte", icon: "\u{1F4CD}", hint: "Treffpunkte" },
+  { label: "Gruppen", count: groups.length, href: "/gruppen", icon: "\u{1F465}", hint: "Mitmachen" },
+  { label: "Teilen", count: resources.length, href: "/ressourcen", icon: "\u{1F91D}", hint: "Ohne Geld" },
+  { label: "Kanäle", count: channels.length, href: "/kanaele", icon: "\u{1F4E2}", hint: "Offiziell" },
 ];
 
 export default function HomePage() {
+  const feedPosts = channels.flatMap((ch) =>
+    ch.posts.map((post) => ({ channel: ch, post }))
+  );
+
   return (
-    <div className="space-y-8">
-      <section className="text-center py-8">
-        <h1 className="text-3xl font-bold text-emerald-800 mb-2">
+    <div className="space-y-6">
+      {/* Calm Civic Editorial Hero Card */}
+      <section className="rounded-3xl bg-gradient-to-br from-[#0f5132] via-[#145c3a] to-[#1b6b45] text-white p-6 sm:p-8 shadow-[0_12px_32px_rgba(15,81,50,0.16)]">
+        <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider bg-white/15 text-emerald-50 px-3 py-1 rounded-full mb-3">
+          <span aria-hidden="true">{"\u{1F4CD}"}</span>
+          <span>Kommune Grüntal</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">
           Willkommen in Grüntal
         </h1>
-        <p className="text-gray-600 max-w-xl mx-auto">
-          LOCUTERRA verbindet deine Nachbarschaft: Finde Orte, tritt Gruppen bei,
-          teile Ressourcen und tausche dich direkt aus &mdash; lokal und
-          gemeinwohlorientiert.
+        <p className="text-emerald-50/90 text-sm sm:text-base leading-relaxed mt-2 max-w-xl">
+          Finde Orte in deiner Nähe, tritt Gruppen bei, teile Geräte oder Hilfe
+          ohne Geld und bleib über offizielle Kanäle informiert.
         </p>
+        <div className="flex flex-wrap gap-2.5 mt-5">
+          <Link
+            href="/ressourcen"
+            className="inline-flex items-center gap-1.5 bg-white text-emerald-950 font-semibold text-sm px-4 py-2.5 rounded-xl shadow-xs hover:bg-emerald-50 transition-colors"
+          >
+            Ressourcen entdecken &rarr;
+          </Link>
+          <Link
+            href="/nachrichten"
+            className="inline-flex items-center gap-1.5 bg-white/15 text-white font-medium text-sm px-4 py-2.5 rounded-xl border border-white/25 hover:bg-white/25 transition-colors"
+          >
+            Nachrichten öffnen
+          </Link>
+        </div>
       </section>
 
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Compact 2x2 / 4x1 Directory Cards */}
+      <section aria-label="Bereiche in Grüntal" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {stats.map((s) => (
           <Link
             key={s.href}
             href={s.href}
-            className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:border-emerald-300 hover:shadow transition-all"
+            className="bg-white border border-stone-200/90 rounded-2xl p-4 shadow-[0_1px_2px_rgba(22,34,28,0.04)] hover:border-emerald-700/40 hover:shadow-md transition-all flex flex-col justify-between"
           >
-            <div className="text-3xl mb-1">{s.icon}</div>
-            <div className="text-2xl font-bold text-emerald-700">{s.count}</div>
-            <div className="text-sm text-gray-500">{s.label}</div>
+            <div className="flex items-center justify-between mb-3">
+              <span
+                className="w-9 h-9 rounded-xl bg-[#edf3ee] flex items-center justify-center text-lg"
+                aria-hidden="true"
+              >
+                {s.icon}
+              </span>
+              <span className="text-2xl font-bold text-emerald-900">{s.count}</span>
+            </div>
+            <div>
+              <div className="font-semibold text-sm text-[#16221c]">{s.label}</div>
+              <div className="text-xs text-gray-600">{s.hint}</div>
+            </div>
           </Link>
         ))}
       </section>
 
+      {/* Feed Timeline */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">
-          Neuigkeiten aus Grüntal
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-bold text-[#16221c] tracking-tight">
+            Neuigkeiten aus Grüntal
+          </h2>
+          <Link
+            href="/kanaele"
+            className="text-xs font-semibold text-emerald-800 hover:underline"
+          >
+            Alle Kanäle &rarr;
+          </Link>
+        </div>
         <div className="space-y-3">
-          {channels.flatMap((ch) =>
-            ch.posts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white border border-gray-200 rounded-xl p-4"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    {ch.name}
-                  </span>
-                  <span className="text-xs text-gray-400">{post.postedAt}</span>
-                </div>
-                <h3 className="font-medium text-gray-900">{post.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{post.body}</p>
+          {feedPosts.map(({ channel, post }) => (
+            <Link
+              key={post.id}
+              href={`/kanaele/${channel.id}`}
+              className="block bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(22,34,28,0.04)] hover:border-emerald-700/40 transition-all"
+            >
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-1.5">
+                <span className="text-[11px] font-semibold text-emerald-900 bg-[#e2f2e8] px-2.5 py-0.5 rounded-full">
+                  {channel.name}
+                </span>
+                <span className="text-xs text-gray-600">{post.postedAt}</span>
               </div>
-            ))
-          )}
+              <h3 className="font-semibold text-[#16221c] text-[15px] leading-snug">
+                {post.title}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">
+                {post.body}
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
 
-      <section className="grid md:grid-cols-3 gap-4">
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
-          <h3 className="font-semibold text-emerald-800 mb-1">
+      {/* Harmonious Civic Action Strip */}
+      <section className="grid md:grid-cols-3 gap-3">
+        <div className="bg-[#e8f3ec] border border-emerald-200/90 rounded-2xl p-5">
+          <h2 className="font-semibold text-emerald-800 mb-1">
             Ressourcen teilen
-          </h3>
-          <p className="text-sm text-emerald-700 mb-3">
-            Biete Geräte, Skills oder Hilfe an &mdash; oder finde, was du brauchst.
+          </h2>
+          <p className="text-sm text-emerald-900/80 mb-3 leading-relaxed">
+            Biete Geräte, Können oder Hilfe an &mdash; ganz ohne Geldfluss.
           </p>
           <Link
             href="/ressourcen"
-            className="text-sm font-medium text-emerald-700 hover:text-emerald-900"
+            className="text-sm font-semibold text-emerald-900 hover:underline"
           >
             Alle Ressourcen ansehen &rarr;
           </Link>
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-          <h3 className="font-semibold text-blue-800 mb-1">
+        <div className="bg-white border border-stone-200/90 rounded-2xl p-5">
+          <h2 className="font-semibold text-[#16221c] mb-1">
             Gruppen entdecken
-          </h3>
-          <p className="text-sm text-blue-700 mb-3">
-            Finde Initiativen in deiner Nähe und werde Teil der Gemeinschaft.
+          </h2>
+          <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+            Finde Initiativen in deiner Nähe und werde Teil der Nachbarschaft.
           </p>
           <Link
             href="/gruppen"
-            className="text-sm font-medium text-blue-700 hover:text-blue-900"
+            className="text-sm font-semibold text-emerald-900 hover:underline"
           >
             Gruppen durchstöbern &rarr;
           </Link>
         </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-          <h3 className="font-semibold text-amber-800 mb-1">
+        <div className="bg-[#f7f2e8] border border-amber-200/80 rounded-2xl p-5">
+          <h2 className="font-semibold text-amber-950 mb-1">
             Orte erkunden
-          </h3>
-          <p className="text-sm text-amber-700 mb-3">
-            Entdecke Treffpunkte, Einrichtungen und Plätze in Grüntal.
+          </h2>
+          <p className="text-sm text-amber-950/80 mb-3 leading-relaxed">
+            Entdecke Treffpunkte, Einrichtungen und Plätze rund um Grüntal.
           </p>
           <Link
             href="/orte"
-            className="text-sm font-medium text-amber-700 hover:text-amber-900"
+            className="text-sm font-semibold text-amber-950 hover:underline"
           >
             Orte ansehen &rarr;
           </Link>

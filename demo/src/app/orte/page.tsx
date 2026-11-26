@@ -12,11 +12,18 @@ const placeIcons: Record<string, string> = {
 
 export default function OrtePage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Orte in Grüntal</h1>
-      <p className="text-gray-500 mb-6">
-        Entdecke Stadtteile, Treffpunkte, Einrichtungen und Naturorte.
-      </p>
+    <div className="space-y-5">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">
+          Kommune Grüntal
+        </p>
+        <h1 className="text-2xl font-bold text-[#16221c] tracking-tight">
+          Orte in Grüntal
+        </h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Entdecke Ortsteile, Treffpunkte, Einrichtungen und Naturorte in deiner Nähe.
+        </p>
+      </header>
       <div className="grid gap-3 md:grid-cols-2">
         {places.map((place) => (
           <Card

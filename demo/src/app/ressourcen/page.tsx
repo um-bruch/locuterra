@@ -22,13 +22,18 @@ const kindIcons: Record<string, string> = {
 
 export default function RessourcenPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">
-        Ressourcen in Grüntal
-      </h1>
-      <p className="text-gray-500 mb-6">
-        Teilen, suchen, finden &mdash; ohne Geld, ohne Bürokratie.
-      </p>
+    <div className="space-y-5">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">
+          Nachbarschaftshilfe
+        </p>
+        <h1 className="text-2xl font-bold text-[#16221c] tracking-tight">
+          Teilen &amp; Ausleihen
+        </h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Geräte, Können, Räume oder Hilfe &mdash; ohne Geld, direkt im Ort.
+        </p>
+      </header>
       <div className="grid gap-3 md:grid-cols-2">
         {resources.map((res) => {
           const owner = getAccount(res.ownerId);

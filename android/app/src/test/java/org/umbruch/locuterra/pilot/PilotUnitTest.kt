@@ -1,5 +1,6 @@
 package org.umbruch.locuterra.pilot
 
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -51,6 +52,66 @@ class PilotUnitTest {
         assertNotNull(resolved)
         assertEquals(listOf("locuterra/_next/static/chunks/main.js"), resolved!!.candidateAssetPaths)
         assertEquals("application/javascript", resolved.mimeType)
+    }
+
+    @Test
+    fun resolverMapsNextCssChunkWithTextCssMimeAndUtf8() {
+        val resolved = LocuterraAssetResolver.resolveUrl(
+            "https://appassets.androidplatform.net/locuterra/_next/static/chunks/3unk5w385e9dg.css"
+        )
+        assertNotNull(resolved)
+        assertEquals(listOf("locuterra/_next/static/chunks/3unk5w385e9dg.css"), resolved!!.candidateAssetPaths)
+        assertEquals("text/css", resolved.mimeType)
+        assertEquals("UTF-8", resolved.encoding)
+    }
+
+    @Test
+    fun allNextAssetsReferencedInIndexHtmlExistAndResolve() {
+        val projectDir = File(System.getProperty("user.dir") ?: ".")
+        val assetsRoot = listOf(
+            File(projectDir, "src/main/assets"),
+            File(projectDir, "app/src/main/assets")
+        ).firstOrNull { it.isDirectory }
+        assertNotNull("Expected Android assets root under src/main/assets", assetsRoot)
+
+        val indexFile = File(assetsRoot!!, "locuterra/index.html")
+        assertTrue("Expected index.html at ${indexFile.path}", indexFile.isFile)
+        val html = indexFile.readText(Charsets.UTF_8)
+
+        val refRegex = Regex("""(?:href|src)="(/locuterra/_next/[^"?#]+)"""")
+        val refs = refRegex.findAll(html).map { it.groupValues[1] }.distinct().toList()
+        assertTrue("Expected _next stylesheet/script refs in index.html", refs.isNotEmpty())
+        assertTrue(
+            "Expected at least one CSS stylesheet under /locuterra/_next/",
+            refs.any { it.endsWith(".css") }
+        )
+
+        for (ref in refs) {
+            val resolved = LocuterraAssetResolver.resolveUrl("https://${LocuterraAssetResolver.VIRTUAL_HOST}$ref")
+            assertNotNull("Failed to resolve $ref", resolved)
+            val assetRelPath = resolved!!.candidateAssetPaths.first()
+            val assetFile = File(assetsRoot, assetRelPath)
+            assertTrue("Missing bundled asset for $ref at ${assetFile.path}", assetFile.isFile)
+            if (ref.endsWith(".css")) {
+                assertEquals("text/css", resolved.mimeType)
+            }
+        }
+    }
+
+    @Test
+    fun gradleConfigAllowsNextUnderscoreAssetDirectory() {
+        val projectDir = File(System.getProperty("user.dir") ?: ".")
+        val gradleFile = listOf(
+            File(projectDir, "build.gradle.kts"),
+            File(projectDir, "app/build.gradle.kts")
+        ).firstOrNull { it.isFile }
+        assertNotNull("Expected build.gradle.kts", gradleFile)
+        val content = gradleFile!!.readText(Charsets.UTF_8)
+        assertTrue("ignoreAssetsPattern must be explicitly configured", content.contains("ignoreAssetsPattern"))
+        val patternLine = content.lines().firstOrNull { it.contains("ignoreAssetsPattern") && it.contains("=") }
+        assertNotNull("Expected ignoreAssetsPattern assignment", patternLine)
+        assertFalse("ignoreAssetsPattern must not exclude <dir>_*", patternLine!!.contains("<dir>_*"))
+        assertFalse("ignoreAssetsPattern must not exclude !_*", patternLine.contains("!_*"))
     }
 
     @Test

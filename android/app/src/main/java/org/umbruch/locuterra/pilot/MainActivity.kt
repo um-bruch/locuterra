@@ -4,11 +4,13 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
@@ -16,10 +18,10 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
-import android.widget.HorizontalScrollView
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -27,28 +29,71 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import java.io.ByteArrayInputStream
 
+/**
+ * LOCUTERRA Android Pilot v0.2.0 — redesigned using `software-in-worten`:
+ * - Single calm native Material-3 Top App Bar (brand + clickable "Grüntal · Pilot" pill + quick icon buttons)
+ * - Single native 5-tab Bottom Navigation (Start, Orte, Gruppen, Teilen, Ich) with active sage pill indicator
+ * - Proper Android 15/16 Edge-to-Edge WindowInsets so bars never overlap status bar or gesture bar
+ * - WebView suppresses duplicate web header/banner/footer via `html.android-pilot`
+ * - Human-language, field-legend dialogs without raw spec filenames or unstyled gray button bars
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
-    private lateinit var statusCounterView: TextView
+    private lateinit var topBar: LinearLayout
+    private lateinit var bottomNavContainer: LinearLayout
+    private lateinit var pilotPillView: TextView
     private val pilotStore = PilotSessionStore()
+    private val tabHolders = mutableListOf<TabViewHolder>()
+    private var activeTabIndex = 0
 
-    data class NavTab(val label: String, val routePath: String)
+    data class NavTab(
+        val label: String,
+        val routePath: String,
+        val iconRes: Int,
+        val matchPrefix: String
+    )
+
+    private data class TabViewHolder(
+        val tab: NavTab,
+        val root: LinearLayout,
+        val pill: FrameLayout,
+        val icon: ImageView,
+        val label: TextView
+    )
 
     private val navTabs = listOf(
-        NavTab("🏠 Feed", "/locuterra/"),
-        NavTab("📍 Orte", "/locuterra/orte"),
-        NavTab("👥 Gruppen", "/locuterra/gruppen"),
-        NavTab("🤝 Ressourcen", "/locuterra/ressourcen"),
-        NavTab("📢 Kanäle", "/locuterra/kanaele"),
-        NavTab("💬 Nachrichten", "/locuterra/nachrichten"),
-        NavTab("👤 Profil", "/locuterra/profil")
+        NavTab("Start", "/locuterra/", R.drawable.ic_nav_home, "/locuterra/"),
+        NavTab("Orte", "/locuterra/orte", R.drawable.ic_nav_places, "/locuterra/orte"),
+        NavTab("Gruppen", "/locuterra/gruppen", R.drawable.ic_nav_groups, "/locuterra/gruppen"),
+        NavTab("Teilen", "/locuterra/ressourcen", R.drawable.ic_nav_share, "/locuterra/ressourcen"),
+        NavTab("Ich", "/locuterra/profil", R.drawable.ic_nav_profile, "/locuterra/profil")
     )
+
+    private val colorBg = Color.parseColor("#F4F6F1")
+    private val colorSurface = Color.WHITE
+    private val colorBrand = Color.parseColor("#0F5132")
+    private val colorSage = Color.parseColor("#E2F2E8")
+    private val colorInk = Color.parseColor("#16221C")
+    private val colorMuted = Color.parseColor("#5C6B62")
+    private val colorBorder = Color.parseColor("#E2E7DF")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Android 15/16 Edge-to-Edge with clean light bars and real inset padding
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = colorSurface
+        window.navigationBarColor = colorSurface
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
+        }
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -56,12 +101,15 @@ class MainActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            setBackgroundColor(Color.WHITE)
+            setBackgroundColor(colorBg)
         }
 
-        // 1. Native Pilot Honesty & Privacy Header Bar
-        val pilotHeader = buildPilotHeaderBar()
-        root.addView(pilotHeader)
+        // 1. Single calm Top App Bar
+        topBar = buildTopAppBar()
+        root.addView(topBar)
+
+        // Subtle divider
+        root.addView(buildDivider())
 
         // 2. Hardened Offline WebView serving bundled Next.js Grüntal kernel
         webView = WebView(this).apply {
@@ -70,15 +118,28 @@ class MainActivity : AppCompatActivity() {
                 0,
                 1f
             )
+            setBackgroundColor(colorBg)
         }
         configureWebView(webView)
         root.addView(webView)
 
-        // 3. Native Bottom Quick-Navigation Bar (Screenmap routes)
-        val bottomNav = buildBottomNavigationBar()
-        root.addView(bottomNav)
+        // Subtle divider above bottom navigation
+        root.addView(buildDivider())
+
+        // 3. Single Material-3 5-Tab Bottom Navigation Bar
+        bottomNavContainer = buildBottomNavigationBar()
+        root.addView(bottomNavContainer)
+
+        // Apply real system bar insets so status bar & gesture bar NEVER overlap content
+        ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            topBar.setPadding(dp(16) + bars.left, dp(10) + bars.top, dp(12) + bars.right, dp(10))
+            bottomNavContainer.setPadding(dp(6) + bars.left, dp(6), dp(6) + bars.right, dp(8) + bars.bottom)
+            insets
+        }
 
         setContentView(root)
+        highlightTab(0)
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -99,72 +160,185 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun buildPilotHeaderBar(): LinearLayout {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#065F46")) // Emerald-800
-            setPadding(dp(12), dp(8), dp(12), dp(8))
-
-            val topRow = LinearLayout(context).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-
-            val titleView = TextView(context).apply {
-                text = getString(R.string.pilot_banner_title)
-                setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                setTypeface(typeface, Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            }
-            topRow.addView(titleView)
-
-            val actionsBtn = Button(context).apply {
-                text = getString(R.string.pilot_actions_button)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                setOnClickListener { showPilotActionsDialog() }
-            }
-            topRow.addView(actionsBtn)
-
-            val infoBtn = Button(context).apply {
-                text = getString(R.string.pilot_info_button)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                setOnClickListener { showPilotInfoAndBoundsDialog() }
-            }
-            topRow.addView(infoBtn)
-
-            addView(topRow)
-
-            statusCounterView = TextView(context).apply {
-                setTextColor(Color.parseColor("#D1FAE5"))
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-            }
-            updateStatusSubtitle()
-            addView(statusCounterView)
+    private fun buildDivider(): View {
+        return View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(1)
+            )
+            setBackgroundColor(colorBorder)
         }
     }
 
-    private fun buildBottomNavigationBar(): HorizontalScrollView {
-        val scroll = HorizontalScrollView(this).apply {
-            setBackgroundColor(Color.parseColor("#F9FAFB"))
-            isHorizontalScrollBarEnabled = false
-        }
-        val bar = LinearLayout(this).apply {
+    private fun buildTopAppBar(): LinearLayout {
+        return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(dp(8), dp(6), dp(8), dp(6))
-        }
-        for (tab in navTabs) {
-            val btn = Button(this).apply {
-                text = tab.label
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                setOnClickListener {
-                    navigateToRoute(tab.routePath)
-                }
+            gravity = Gravity.CENTER_VERTICAL
+            setBackgroundColor(colorSurface)
+            setPadding(dp(16), dp(10), dp(12), dp(10))
+
+            // Brand emblem dot + title + clickable Pilot pill
+            val brandGroup = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
-            bar.addView(btn)
+
+            val logoDot = FrameLayout(context).apply {
+                layoutParams = LinearLayout.LayoutParams(dp(30), dp(30)).apply {
+                    marginEnd = dp(9)
+                }
+                background = roundedDrawable(colorBrand, dp(9))
+                addView(ImageView(context).apply {
+                    setImageResource(R.drawable.ic_nav_places)
+                    setColorFilter(Color.WHITE)
+                    layoutParams = FrameLayout.LayoutParams(dp(18), dp(18), Gravity.CENTER)
+                })
+            }
+            brandGroup.addView(logoDot)
+
+            val titleCol = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+
+            val titleView = TextView(context).apply {
+                text = getString(R.string.app_name)
+                setTextColor(colorInk)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                setTypeface(Typeface.DEFAULT_BOLD)
+                letterSpacing = 0.03f
+            }
+            titleCol.addView(titleView)
+
+            pilotPillView = TextView(context).apply {
+                text = getString(R.string.pilot_chip_label)
+                setTextColor(colorBrand)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+                setTypeface(Typeface.DEFAULT_BOLD)
+                setOnClickListener { showPilotOverviewSheet() }
+            }
+            titleCol.addView(pilotPillView)
+            brandGroup.addView(titleCol)
+            addView(brandGroup)
+
+            // Calm circular icon buttons (Channels, Messages, Pilot Menu)
+            addView(buildIconAction(R.drawable.ic_nav_channels, getString(R.string.cd_channels)) {
+                navigateToRoute("/locuterra/kanaele")
+            })
+            addView(buildIconAction(R.drawable.ic_nav_messages, getString(R.string.cd_messages)) {
+                navigateToRoute("/locuterra/nachrichten")
+            })
+            addView(buildIconAction(R.drawable.ic_nav_more, getString(R.string.cd_pilot_menu)) {
+                showPilotActionsDialog()
+            })
         }
-        scroll.addView(bar)
-        return scroll
+    }
+
+    private fun buildIconAction(iconRes: Int, description: String, onClick: () -> Unit): FrameLayout {
+        return FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(42), dp(42)).apply {
+                marginStart = dp(4)
+            }
+            background = roundedDrawable(colorBg, dp(21))
+            contentDescription = description
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onClick() }
+            addView(ImageView(context).apply {
+                setImageResource(iconRes)
+                setColorFilter(colorInk)
+                layoutParams = FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER)
+            })
+        }
+    }
+
+    private fun buildBottomNavigationBar(): LinearLayout {
+        tabHolders.clear()
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setBackgroundColor(colorSurface)
+            setPadding(dp(6), dp(6), dp(6), dp(8))
+
+            navTabs.forEachIndexed { idx, tab ->
+                val item = LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.CENTER
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    minimumHeight = dp(52)
+                    isClickable = true
+                    isFocusable = true
+                    contentDescription = tab.label
+                    setOnClickListener {
+                        highlightTab(idx)
+                        navigateToRoute(tab.routePath)
+                    }
+                }
+
+                val pill = FrameLayout(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(dp(56), dp(30))
+                    background = roundedDrawable(Color.TRANSPARENT, dp(15))
+                }
+
+                val icon = ImageView(context).apply {
+                    setImageResource(tab.iconRes)
+                    setColorFilter(colorMuted)
+                    layoutParams = FrameLayout.LayoutParams(dp(21), dp(21), Gravity.CENTER)
+                }
+                pill.addView(icon)
+
+                val label = TextView(context).apply {
+                    text = tab.label
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+                    setTextColor(colorMuted)
+                    gravity = Gravity.CENTER
+                    setPadding(0, dp(3), 0, 0)
+                }
+
+                item.addView(pill)
+                item.addView(label)
+                addView(item)
+                tabHolders.add(TabViewHolder(tab, item, pill, icon, label))
+            }
+        }
+    }
+
+    private fun highlightTab(index: Int) {
+        activeTabIndex = index
+        tabHolders.forEachIndexed { i, holder ->
+            val selected = i == index
+            holder.pill.background = roundedDrawable(
+                if (selected) colorSage else Color.TRANSPARENT,
+                dp(15)
+            )
+            holder.icon.setColorFilter(if (selected) colorBrand else colorMuted)
+            holder.label.setTextColor(if (selected) colorBrand else colorMuted)
+            holder.label.setTypeface(
+                if (selected) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+            )
+        }
+    }
+
+    private fun syncTabFromUrl(url: String?) {
+        val path = runCatching { Uri.parse(url ?: "").path ?: "" }.getOrDefault("")
+        val matched = when {
+            path.startsWith("/locuterra/orte") -> 1
+            path.startsWith("/locuterra/gruppen") -> 2
+            path.startsWith("/locuterra/ressourcen") -> 3
+            path.startsWith("/locuterra/profil") -> 4
+            path == "/locuterra/" || path == "/locuterra" -> 0
+            else -> -1 // channels / messages keep calm unselected state
+        }
+        if (matched >= 0) {
+            highlightTab(matched)
+        } else {
+            tabHolders.forEach { holder ->
+                holder.pill.background = roundedDrawable(Color.TRANSPARENT, dp(15))
+                holder.icon.setColorFilter(colorMuted)
+                holder.label.setTextColor(colorMuted)
+                holder.label.setTypeface(Typeface.DEFAULT)
+            }
+        }
     }
 
     fun navigateToRoute(routePath: String) {
@@ -173,8 +347,15 @@ class MainActivity : AppCompatActivity() {
         webView.loadUrl(url)
     }
 
-    private fun updateStatusSubtitle() {
-        statusCounterView.text = pilotStore.formatStatusSubtitle()
+    private fun updatePilotPill() {
+        val activeCount = pilotStore.getResourceInquiries().size +
+            pilotStore.getEphemeralMessages().size +
+            pilotStore.getModerationCases().size
+        pilotPillView.text = if (activeCount > 0) {
+            "Grüntal · Pilot ($activeCount lokal)"
+        } else {
+            getString(R.string.pilot_chip_label)
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -184,9 +365,6 @@ class MainActivity : AppCompatActivity() {
             domStorageEnabled = true
             allowFileAccess = false
             allowContentAccess = false
-            // blockNetworkLoads stays at its default: without the INTERNET permission it is
-            // already true, and setting it to false would throw a SecurityException.
-            // Local assets are still served through shouldInterceptRequest below.
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
             cacheMode = WebSettings.LOAD_NO_CACHE
         }
@@ -219,7 +397,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Fallback to 404.html if HTML route not found
                 if (resolved.mimeType == "text/html") {
                     val notFoundStream = runCatching { assets.open("locuterra/404.html") }.getOrNull()
                     if (notFoundStream != null) {
@@ -247,27 +424,31 @@ class MainActivity : AppCompatActivity() {
                     return false
                 }
                 if (!PilotDomScript.isOpenableExternalUrl(urlStr)) {
-                    // intent:, file:, content:, javascript: and similar never leave the pilot.
                     return true
                 }
-                // External informational links (GitHub / Um:bruch) open only after explicit user confirmation
                 AlertDialog.Builder(this@MainActivity)
-                    .setTitle("Externer Link außerhalb des Offline-Piloten")
+                    .setTitle("Externen Link im Browser öffnen?")
                     .setMessage(
-                        "Der Pilot arbeitet vollständig lokal. Möchtest du diesen externen Link im Systembrowser öffnen?\n\n$urlStr"
+                        "Diese App arbeitet komplett lokal. Möchtest du diese Webseite im Browser öffnen?\n\n$urlStr"
                     )
                     .setPositiveButton("Im Browser öffnen") { _, _ ->
                         runCatching {
                             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(urlStr)))
                         }
                     }
-                    .setNegativeButton("Im Piloten bleiben", null)
+                    .setNegativeButton("Hier bleiben", null)
                     .show()
                 return true
             }
 
+            override fun onPageCommitVisible(view: WebView?, url: String?) {
+                super.onPageCommitVisible(view, url)
+                injectInteractivePilotEnhancements()
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                syncTabFromUrl(url)
                 injectInteractivePilotEnhancements()
             }
         }
@@ -285,37 +466,37 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Upgrades the static Demo buttons in the WebView at runtime so that tapping
-     * "Abonnieren (Demo)", "Beitreten (Demo)", "Nachricht schreiben (Demo)", or "Senden"
-     * triggers the interactive ephemeral Android Pilot flow while preserving the honest Pilot badge.
+     * Activates Android-shell presentation (`html.android-pilot` suppresses duplicate web nav/banner)
+     * and upgrades static demo controls into live local interactive pilot actions.
      */
     private fun injectInteractivePilotEnhancements() {
         val script = """
             (function() {
+              document.documentElement.classList.add('android-pilot');
               if (!window.LocuterraAndroidPilot) return;
               var buttons = document.querySelectorAll('button[disabled]');
               buttons.forEach(function(btn) {
                 var txt = (btn.textContent || '').trim();
                 btn.removeAttribute('disabled');
                 btn.classList.remove('cursor-not-allowed', 'bg-emerald-200', 'text-emerald-600');
-                btn.classList.add('bg-emerald-700', 'text-white', 'hover:bg-emerald-800');
+                btn.classList.add('bg-[#0f5132]', 'text-white', 'shadow-sm');
                 if (txt.indexOf('Abonnieren') !== -1) {
-                  btn.textContent = 'Kanal-Abo & Consent testen (Pilot lokal)';
+                  btn.textContent = 'Kanal-Einstellungen & Abo';
                   btn.onclick = function() { window.LocuterraAndroidPilot.openChannelConsentFlow(window.location.pathname); };
                 } else if (txt.indexOf('Beitreten') !== -1) {
-                  btn.textContent = 'Gruppen-Beitritt testen (Pilot lokal)';
+                  btn.textContent = 'Gruppe beitreten';
                   btn.onclick = function() { window.LocuterraAndroidPilot.openGroupJoinFlow(window.location.pathname); };
                 } else if (txt.indexOf('Nachricht schreiben') !== -1) {
-                  btn.textContent = 'Nicht-kommerzielle Anfrage testen (Pilot lokal)';
+                  btn.textContent = 'Anfrage schreiben';
                   btn.onclick = function() { window.LocuterraAndroidPilot.openResourceInquiryFlow(window.location.pathname, document.title || ''); };
                 } else if (txt.indexOf('Senden') !== -1) {
-                  btn.textContent = 'Lokal senden (Pilot)';
+                  btn.textContent = 'Senden';
                   var input = document.querySelector('input[disabled]');
                   if (input) {
                     input.removeAttribute('disabled');
-                    input.placeholder = 'Ephemere Pilot-Nachricht eingeben (nur lokal im RAM)...';
+                    input.placeholder = 'Nachricht schreiben …';
                     input.classList.remove('bg-gray-50', 'text-gray-400');
-                    input.classList.add('bg-white', 'text-gray-900');
+                    input.classList.add('bg-white', 'text-[#16221c]');
                   }
                   btn.onclick = function() {
                     var val = input ? input.value : '';
@@ -360,11 +541,11 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 val res = pilotStore.sendEphemeralMessage("conv-pilot-direct", body)
                 res.onSuccess { msg ->
-                    updateStatusSubtitle()
+                    updatePilotPill()
                     appendMessageToWebViewDom(msg.senderDisplayName, msg.body)
                     Toast.makeText(
                         this@MainActivity,
-                        "Lokal im Pilot-RAM vermerkt (kein Serverversand).",
+                        "Nachricht lokal gespeichert (Pilot).",
                         Toast.LENGTH_SHORT
                     ).show()
                 }.onFailure { err ->
@@ -380,29 +561,30 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPilotActionsDialog() {
         val items = arrayOf(
-            "1. Informationskanal-Flow (Abo vs. Chat vs. Kontakt-Consent)",
-            "2. Ressourcen-Flow (Nicht-kommerzielle Nachbarschaftsanfrage)",
-            "3. Gruppen-Beitritt (Offen vs. Steward-Genehmigung vs. Einladung)",
-            "4. Moderation & Einspruch vormerken (Governance-Flow)",
-            "5. Aktuellen Pilot-Speicher (RAM) inspizieren",
-            "6. Pilot-Zustand auf Grüntal-Seed zurücksetzen"
+            "Kanal-Abo & Datenschutz testen",
+            "Ressource anfragen (Nachbarschaftshilfe)",
+            "Gruppen-Beitritt testen",
+            "Hinweis oder Einspruch melden",
+            "Über den Grüntal-Piloten & Status",
+            "Alle lokalen Pilot-Daten zurücksetzen"
         )
         AlertDialog.Builder(this)
-            .setTitle("LOCUTERRA Pilot-Ablauf (Grüntal)")
+            .setTitle("Was möchtest du testen?")
             .setItems(items) { _, which ->
                 when (which) {
                     0 -> showChannelConsentDialog("gemeinde-info")
                     1 -> showResourceInquiryDialog("bohrmaschine")
                     2 -> showGroupJoinDialog("elterntreff")
                     3 -> showModerationAppealDialog()
-                    4 -> showPilotStateSummaryDialog()
+                    4 -> showPilotOverviewSheet()
                     5 -> {
                         pilotStore.resetToSeed()
-                        updateStatusSubtitle()
+                        updatePilotPill()
+                        highlightTab(0)
                         webView.loadUrl(LocuterraAssetResolver.ENTRY_URL)
                         Toast.makeText(
                             this,
-                            "Pilot-Zustand auf synthetische Grüntal-Seed-Daten zurückgesetzt.",
+                            "Auf Startzustand (Grüntal) zurückgesetzt.",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -416,51 +598,48 @@ class MainActivity : AppCompatActivity() {
         val current = pilotStore.getChannelState(defaultChannelId)
             ?: pilotStore.getChannelState("gemeinde-info")!!
 
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(12), dp(20), dp(4))
-        }
+        val container = dialogContainer()
+        container.addView(dialogIntro(
+            "Entscheide getrennt, wie du „${current.channelName}“ nutzen möchtest. Ein Abo gibt niemals automatisch deine Kontaktdaten weiter."
+        ))
 
-        val info = TextView(this).apply {
-            text = "Gemäß INFORMATIONSKANAL_FLOW.md sind Abonnement, Begleitchat und Kontaktfreigabe strikt getrennte Teilflüsse. Ein Kanal-Abo gibt niemals automatisch Kontaktdaten frei."
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-        }
-        container.addView(info)
+        val subCheck = styledCheckCard(
+            "Kanal abonnieren",
+            "Beiträge dieses Kanals erscheinen in deiner Übersicht.",
+            current.subscribed
+        )
+        val chatCheck = styledCheckCard(
+            "Begleitchat aktivieren (optional)",
+            "Mit anderen Abonnent:innen unter Pseudonym austauschen.",
+            current.companionChatEnabled
+        )
+        val consentCheck = styledCheckCard(
+            "Kontaktdaten separat freigeben",
+            "Nur auf ausdrücklichen Wunsch an den Kanalbetreiber — jederzeit einzeln widerrufbar.",
+            current.contactSharingConsented
+        )
 
-        val subCheck = CheckBox(this).apply {
-            text = "1. Kanal abonnieren (${current.channelName})"
-            isChecked = current.subscribed
-        }
-        val chatCheck = CheckBox(this).apply {
-            text = "2. Optionalen Begleitchat aktivieren"
-            isChecked = current.companionChatEnabled
-        }
-        val consentCheck = CheckBox(this).apply {
-            text = "3. Separate Kontaktfreigabe an Kanalbetreiber (jederzeit einzeln widerrufbar)"
-            isChecked = current.contactSharingConsented
-        }
-
-        container.addView(subCheck)
-        container.addView(chatCheck)
-        container.addView(consentCheck)
+        container.addView(subCheck.card)
+        container.addView(chatCheck.card)
+        container.addView(consentCheck.card)
 
         AlertDialog.Builder(this)
-            .setTitle("Kanal-Flow: ${current.channelName}")
+            .setTitle("Wie möchtest du diesen Kanal nutzen?")
             .setView(container)
-            .setPositiveButton("Lokal speichern") { _, _ ->
+            .setPositiveButton("Speichern") { _, _ ->
                 pilotStore.updateChannelSubscription(
                     channelId = current.channelId,
-                    subscribe = subCheck.isChecked,
-                    enableCompanionChat = chatCheck.isChecked
+                    subscribe = subCheck.checkBox.isChecked,
+                    enableCompanionChat = chatCheck.checkBox.isChecked
                 )
                 pilotStore.setChannelContactConsent(
                     channelId = current.channelId,
-                    consented = consentCheck.isChecked
+                    consented = consentCheck.checkBox.isChecked
                 )
-                updateStatusSubtitle()
+                updatePilotPill()
                 Toast.makeText(
                     this,
-                    "Kanal- und Consent-Status lokal aktualisiert.",
+                    "Einstellungen für „${current.channelName}“ lokal gespeichert.",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -472,53 +651,48 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showResourceInquiryDialog(resourceId: String) {
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(12), dp(20), dp(4))
-        }
+        val container = dialogContainer()
+        container.addView(dialogIntro(
+            "Teilen in Grüntal ist kostenlose Nachbarschaftshilfe ohne Geldfluss. Deine Nachricht bleibt lokal in diesem Piloten."
+        ))
 
-        val hintView = TextView(this).apply {
-            text = "Gemäß RESSOURCEN_UND_MARKTPLATZ.md sind Ressourcen im MVP strikt nicht-kommerziell (keine Zahlungen, keine Gebühren, kein Checkout). Die Anfrage bleibt rein lokal im Pilot-RAM."
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-        }
-        container.addView(hintView)
-
-        val input = EditText(this).apply {
-            this.hint = "Nachricht an Anbieter in Grüntal..."
-            setText("Hallo! Ist die Ressource ($resourceId) am Samstag in Grüntal-Mitte ausleihbar?")
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-        }
+        val input = styledEditText(
+            hint = "Schreibe eine freundliche Anfrage …",
+            initial = "Hallo! Könnte ich das am Samstag kurz ausleihen?",
+            multiLine = true
+        )
         container.addView(input)
 
-        val nonCommercialBox = CheckBox(this).apply {
-            text = "Nicht-kommerzielle Nachbarschaftshilfe bestätigen (kein Marktplatz/Geldfluss)"
-            isChecked = true
-        }
-        container.addView(nonCommercialBox)
+        val nonCommercial = styledCheckCard(
+            "Kostenlose Nachbarschaftshilfe bestätigen",
+            "Kein Kauf, keine Miete, keine Gebühren.",
+            true
+        )
+        container.addView(nonCommercial.card)
 
         AlertDialog.Builder(this)
-            .setTitle("Ressource anfragen ($resourceId)")
+            .setTitle("Anfrage senden ($resourceId)")
             .setView(container)
-            .setPositiveButton("Anfrage lokal senden") { _, _ ->
+            .setPositiveButton("Anfrage senden") { _, _ ->
                 val result = pilotStore.submitResourceInquiry(
                     resourceId = resourceId,
                     resourceTitle = resourceId,
                     recipientDisplayName = "Anbieter Grüntal",
                     message = input.text.toString(),
-                    nonCommercialConfirmed = nonCommercialBox.isChecked
+                    nonCommercialConfirmed = nonCommercial.checkBox.isChecked
                 )
                 result.onSuccess {
-                    updateStatusSubtitle()
+                    updatePilotPill()
                     Toast.makeText(
                         this,
-                        "Ressourcen-Anfrage lokal im Pilot-RAM gespeichert.",
+                        "Anfrage lokal vorgemerkt und unter Nachrichten abgelegt.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }.onFailure { err ->
-                    Toast.makeText(this, err.message ?: "Fehler", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, err.message ?: "Bitte prüfe deine Eingabe.", Toast.LENGTH_LONG).show()
                 }
             }
-            .setNeutralButton("Zu Nachrichten") { _, _ ->
+            .setNeutralButton("Nachrichten") { _, _ ->
                 navigateToRoute("/locuterra/nachrichten")
             }
             .setNegativeButton("Abbrechen", null)
@@ -529,121 +703,199 @@ class MainActivity : AppCompatActivity() {
         val allGroups = pilotStore.getAllGroupStates()
         val selected = pilotStore.getGroupState(groupId) ?: allGroups.first()
 
-        val message = buildString {
-            appendLine("Gruppe: ${selected.groupName}")
-            appendLine("Beitrittsregel laut ROLES_AND_RIGHTS.md: ${selected.policy}")
-            appendLine("Aktueller Status: ${selected.status}")
-            appendLine()
-            appendLine("• 'offen' -> direkter Beitritt im Pilot-RAM")
-            appendLine("• 'genehmigung' -> Anfrage an Gruppen-Steward vorgemerkt")
-            appendLine("• 'einladung' -> Beitritt ohne Steward-Einladung gesperrt")
+        val ruleExplanation = when (selected.policy) {
+            "offen" -> "Offene Gruppe — du trittst sofort bei."
+            "genehmigung" -> "Mit Freigabe — die Ansprechperson bestätigt deine Anfrage."
+            else -> "Nur mit Einladung — ohne persönliche Einladung bleibt der Beitritt gesperrt."
+        }
+        val statusLabel = when (selected.status) {
+            PilotSessionStore.GroupJoinStatus.MEMBER -> "Du bist Mitglied"
+            PilotSessionStore.GroupJoinStatus.PENDING_STEWARD_APPROVAL -> "Anfrage wartet auf Freigabe"
+            PilotSessionStore.GroupJoinStatus.INVITATION_REQUIRED -> "Einladung erforderlich"
+            PilotSessionStore.GroupJoinStatus.NOT_JOINED -> "Noch kein Mitglied"
         }
 
+        val container = dialogContainer()
+        container.addView(dialogIntro("$ruleExplanation\n\nAktueller Status: $statusLabel"))
+
         AlertDialog.Builder(this)
-            .setTitle("Gruppen-Flow: ${selected.groupName}")
-            .setMessage(message)
-            .setPositiveButton("Beitritt / Anfrage auslösen") { _, _ ->
+            .setTitle(selected.groupName)
+            .setView(container)
+            .setPositiveButton("Beitreten / Anfragen") { _, _ ->
                 val updated = pilotStore.requestGroupJoin(selected.groupId)
-                updateStatusSubtitle()
-                Toast.makeText(
-                    this,
-                    "Neuer Gruppenstatus (${updated.groupName}): ${updated.status}",
-                    Toast.LENGTH_LONG
-                ).show()
+                updatePilotPill()
+                val feedback = when (updated.status) {
+                    PilotSessionStore.GroupJoinStatus.MEMBER -> "Du bist „${updated.groupName}“ beigetreten."
+                    PilotSessionStore.GroupJoinStatus.PENDING_STEWARD_APPROVAL -> "Beitrittsanfrage vorgemerkt (wartet auf Freigabe)."
+                    PilotSessionStore.GroupJoinStatus.INVITATION_REQUIRED -> "Für diese Gruppe wird eine Einladung benötigt."
+                    else -> "Status aktualisiert."
+                }
+                Toast.makeText(this, feedback, Toast.LENGTH_LONG).show()
             }
-            .setNeutralButton("Austreten (Reset)") { _, _ ->
+            .setNeutralButton("Austreten") { _, _ ->
                 pilotStore.leaveGroup(selected.groupId)
-                updateStatusSubtitle()
+                updatePilotPill()
+                Toast.makeText(this, "Mitgliedschaft zurückgesetzt.", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Schließen", null)
             .show()
     }
 
     private fun showModerationAppealDialog() {
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(12), dp(20), dp(4))
-        }
+        val container = dialogContainer()
+        container.addView(dialogIntro(
+            "Meldung und Einspruch werden getrennt geprüft. Lege hier einen lokalen Testfall für Grüntal an."
+        ))
 
-        val info = TextView(this).apply {
-            text = "Gemäß GOVERNANCE.md & BACKOFFICE_EINSPRUCHS_FLOW.md trennt LOCUTERRA Meldung, Erstentscheidung und Zweitprüfung (Einspruchsstelle). Hier kannst du einen lokalen Testfall anlegen."
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-        }
-        container.addView(info)
-
-        val reasonInput = EditText(this).apply {
-            setText("Prüfung Reichweiten-Stufe (Dorf vs. Kommune) bei Ortsbeitrag")
-        }
-        val appealInput = EditText(this).apply {
-            setText("Einspruchsbegründung für Zweitprüfung durch unabhängigen Steward")
-        }
+        val reasonInput = styledEditText(
+            hint = "Was soll geprüft werden?",
+            initial = "Sichtbarkeit eines Ortsbeitrags prüfen",
+            multiLine = false
+        )
+        val appealInput = styledEditText(
+            hint = "Optional: Begründung für Zweitprüfung",
+            initial = "",
+            multiLine = true
+        )
         container.addView(reasonInput)
         container.addView(appealInput)
 
         AlertDialog.Builder(this)
-            .setTitle("Moderation & Einspruch (Pilot)")
+            .setTitle("Hinweis oder Einspruch melden")
             .setView(container)
             .setPositiveButton("Vormerken") { _, _ ->
                 pilotStore.submitModerationOrAppeal(
                     targetRef = "ort:marktplatz",
                     reason = reasonInput.text.toString(),
                     appealNote = appealInput.text.toString()
-                )
-                updateStatusSubtitle()
-                Toast.makeText(
-                    this,
-                    "Moderations-/Einspruchsfall lokal vermerkt.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                ).onSuccess {
+                    updatePilotPill()
+                    Toast.makeText(this, "Hinweis lokal vorgemerkt.", Toast.LENGTH_SHORT).show()
+                }.onFailure { err ->
+                    Toast.makeText(this, err.message ?: "Bitte Begründung eingeben.", Toast.LENGTH_SHORT).show()
+                }
             }
             .setNegativeButton("Abbrechen", null)
             .show()
     }
 
-    private fun showPilotStateSummaryDialog() {
+    private fun showPilotOverviewSheet() {
+        val scroll = ScrollView(this)
+        val content = dialogContainer()
+        content.addView(dialogIntro(
+            "LOCUTERRA Pilot (v0.2.0) zeigt die fiktive Kommune Grüntal vollständig offline auf deinem Gerät. " +
+                "Es gibt keinen Server, kein Tracking und keine echten Personendaten."
+        ))
+        content.addView(TextView(this).apply {
+            text = pilotStore.buildPilotSummaryText()
+            setTextColor(colorInk)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setLineSpacing(dp(3).toFloat(), 1f)
+            background = roundedDrawable(colorBg, dp(12))
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+        })
+        scroll.addView(content)
+
         AlertDialog.Builder(this)
-            .setTitle("Aktueller Ephemerer Pilot-State")
-            .setMessage(pilotStore.buildPilotSummaryText())
-            .setPositiveButton("OK", null)
-            .setNeutralButton("Auf Seed zurücksetzen") { _, _ ->
+            .setTitle("Grüntal · Lokaler Pilot")
+            .setView(scroll)
+            .setPositiveButton("Verstanden", null)
+            .setNeutralButton("Zurücksetzen") { _, _ ->
                 pilotStore.resetToSeed()
-                updateStatusSubtitle()
-                Toast.makeText(this, "Pilot-Speicher zurückgesetzt.", Toast.LENGTH_SHORT).show()
+                updatePilotPill()
+                Toast.makeText(this, "Pilot-Daten zurückgesetzt.", Toast.LENGTH_SHORT).show()
             }
             .show()
     }
 
-    private fun showPilotInfoAndBoundsDialog() {
-        val scroll = ScrollView(this)
-        val infoView = TextView(this).apply {
-            setPadding(dp(20), dp(14), dp(20), dp(14))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
-            this.text = buildString {
-                appendLine("LOCUTERRA Android-Pilot (v0.1.0-pilot)")
-                appendLine("======================================")
-                appendLine()
-                appendLine("1. Architektur & Wiederverwendung (DECISIONS.md / PORTIERUNGSPLAN.md):")
-                appendLine("• Nutzt denselben statischen Next.js/React/TypeScript-Kern (`demo/out`) und dieselben synthetischen Seed-Daten der fiktiven Kommune 'Grüntal' wie der Web-Demonstrator.")
-                appendLine("• Alle 11 MVP-Screens (Feed, Orte, Gruppen, Ressourcen, Kanäle, Direktnachrichten, Profil) werden über `LocuterraAssetResolver` direkt aus den lokalen APK-Assets ausgeliefert.")
-                appendLine()
-                appendLine("2. Ehrliche Pilot- und Backend-Grenzen:")
-                appendLine("• KEIN Echtbetrieb, KEINE echten Bürgerdaten, KEINE Server-Datenbank.")
-                appendLine("• Die App fordert bewusst KEINE `android.permission.INTERNET`-Berechtigung im Manifest an; jeglicher ungeprüfte Netzwerkverkehr im WebView ist fail-closed gesperrt.")
-                appendLine("• Alle Interaktionen (Kanal-Consent, Gruppenbeitritt, Ressourcen-Anfragen, Nachrichten, Einspruch) sind ephemerer Client-State im lokalen Arbeitsspeicher und jederzeit auf den Seed-Zustand zurücksetzbar.")
-                appendLine()
-                appendLine("3. Fachliche Schutzregeln im Piloten:")
-                appendLine("• Pseudonymität als Standard, Reichweiten-Hierarchie (`privat` bis `transnational`) getrennt von Kontaktfreigabe.")
-                appendLine("• Kanal-Abo, Begleitchat und Kontaktfreigabe sind drei getrennte Schalter.")
-                appendLine("• Ressourcen sind strikt nicht-kommerziell (Marktplatz/Zahlungen technisch getrennt).")
+    private fun dialogContainer(): LinearLayout {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(10), dp(20), dp(6))
+        }
+    }
+
+    private fun dialogIntro(text: String): TextView {
+        return TextView(this).apply {
+            this.text = text
+            setTextColor(colorMuted)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f)
+            setLineSpacing(dp(2).toFloat(), 1f)
+            setPadding(0, 0, 0, dp(12))
+        }
+    }
+
+    private fun styledEditText(hint: String, initial: String, multiLine: Boolean): EditText {
+        return EditText(this).apply {
+            this.hint = hint
+            setText(initial)
+            setTextColor(colorInk)
+            setHintTextColor(colorMuted)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            inputType = if (multiLine) {
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            } else {
+                InputType.TYPE_CLASS_TEXT
+            }
+            if (multiLine) minLines = 2
+            background = outlinedDrawable(colorBg, colorBorder, dp(12))
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(10)
             }
         }
-        scroll.addView(infoView)
+    }
 
-        AlertDialog.Builder(this)
-            .setTitle("Pilot-Information & Systemgrenzen")
-            .setView(scroll)
-            .setPositiveButton("Verstanden", null)
-            .show()
+    private data class CheckCard(val card: LinearLayout, val checkBox: CheckBox)
+
+    private fun styledCheckCard(title: String, subtitle: String, checked: Boolean): CheckCard {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = outlinedDrawable(colorBg, colorBorder, dp(12))
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(8)
+            }
+        }
+        val box = CheckBox(this).apply {
+            text = title
+            isChecked = checked
+            setTextColor(colorInk)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setTypeface(Typeface.DEFAULT_BOLD)
+        }
+        val sub = TextView(this).apply {
+            text = subtitle
+            setTextColor(colorMuted)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            setPadding(dp(32), dp(2), 0, 0)
+        }
+        card.addView(box)
+        card.addView(sub)
+        return CheckCard(card, box)
+    }
+
+    private fun roundedDrawable(fillColor: Int, radiusPx: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(fillColor)
+            cornerRadius = radiusPx.toFloat()
+        }
+    }
+
+    private fun outlinedDrawable(fillColor: Int, strokeColor: Int, radiusPx: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(fillColor)
+            setStroke(dp(1), strokeColor)
+            cornerRadius = radiusPx.toFloat()
+        }
     }
 
     private fun dp(value: Int): Int {
